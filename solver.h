@@ -9,25 +9,24 @@
 #ifndef SOLVER_H_
 #define SOLVER_H_
 
-
-void print2dVector(vector<vector<int> > v){
-	for(int i=0;i<v.size();i++){
-		for(int j=0;j<v[i].size();j++){
+void print2dVector(vector<vector<int> > v) {
+	for (int i = 0; i < v.size(); i++) {
+		for (int j = 0; j < v[i].size(); j++) {
 			//cout<<v[i][j]<<" ";
-		}//cout<<endl;
+		} //cout<<endl;
 	}
 }
 
-void printVector(vector<int> v){
-	for(int i=0;i<v.size();i++){
+void printVector(vector<int> v) {
+	for (int i = 0; i < v.size(); i++) {
 		//cout<<v[i];
-	}//cout<<endl;
+	} //cout<<endl;
 }
 
-bool isPresentIn(vector<int> v, int n){
+bool isPresentIn(vector<int> v, int n) {
 	//cout<<"inside isPresentIn"<<endl;
-	for(int i=0;i<v.size();i++){
-		if(v[i]==n){
+	for (int i = 0; i < v.size(); i++) {
+		if (v[i] == n) {
 			return true;
 		}
 	}
@@ -73,12 +72,12 @@ vector<vector<int> > evaluateQuotient(vector<vector<int> > formula, vector<int> 
 	return fIter;
 }
 
-void applyUnitPropogation(vector<vector<int> > formula, vector<int> assignments, vector<int> unknowns){
+void applyUnitPropogation(vector<vector<int> > formula, vector<int> assignments, vector<int> unknowns) {
 	//cout<<"inside applyUnitProp"<<endl;
 	vector<int> alreadyRemoved;
-	for(int i=0;i<formula.size();i++){
-		if(formula[i].size()==1){
-			if(isPresentIn(alreadyRemoved, abs(formula[i][0]))){
+	for (int i = 0; i < formula.size(); i++) {
+		if (formula[i].size() == 1) {
+			if (isPresentIn(alreadyRemoved, abs(formula[i][0]))) {
 				continue;
 			}
 			alreadyRemoved.push_back(abs(formula[i][0]));
@@ -86,10 +85,9 @@ void applyUnitPropogation(vector<vector<int> > formula, vector<int> assignments,
 			//cout<<"erasing from unknowns"<<endl;
 			unknowns.erase(remove(unknowns.begin(), unknowns.end(), abs(formula[i][0])), unknowns.end());
 			//cout<<"erased"<<endl;
-			vector<int> v;
-			v.push_back(-1*(formula[i][0]));
+			vector<int> v{-1 * (formula[i][0])};
 			//cout<<"evaluating Quitient"<<endl;
-			formula=evaluateQuotient(formula, v);
+			formula = evaluateQuotient(formula, v);
 			//cout<<"evaluated"<<endl;
 		}
 	}
@@ -135,14 +133,14 @@ vector<int> findUnassignedVars(vector<int> term, vector<int> varList) {
 	//cout<<"inside findUnassignedVars"<<endl;
 	vector<int> unassignedVars;
 	for (int i = 0; i < varList.size(); i++) {
-		bool found=false;
+		bool found = false;
 		for (int j = 0; j < term.size(); j++) {
-			if (varList[i] == term[j] || varList[i]+ term[j]==0) {
-				found=true;
+			if (varList[i] == term[j] || varList[i] + term[j] == 0) {
+				found = true;
 				break;
 			}
 		}
-		if(!found){
+		if (!found) {
 			unassignedVars.push_back(varList[i]);
 		}
 	}
@@ -185,6 +183,48 @@ struct q_element {
 	vector<int> unknowns;
 };
 
+void applyPureLiteralRule(vector<vector<int> > formula, vector<int> assignments, vector<int> unknowns) {
+	//cout << "applyPureLiteral begins" << endl;
+	for (int i = 0; i < unknowns.size(); i++) {
+		//cout << "i=" << i << endl;
+		bool literalExists = false;
+		bool complementExists = false;
+		for (int j = 0; j < formula.size(); j++) {
+			//cout << "j=" << j << endl;
+			if (isPresentIn(formula[j], unknowns[i])) {
+				literalExists = true;
+				//cout << "literal exists" << endl;
+				if (complementExists) {
+					//cout << "and complement also exists" << endl;
+					break;
+				}
+			}
+			if (isPresentIn(formula[j], -1 * (unknowns[i]))) {
+				complementExists = true;
+				//cout << "complement exists" << endl;
+				if (literalExists) {
+					break;
+				}
+			}
+		}
+			if (literalExists && !complementExists) {
+				//cout<<"literal exists and complement doesn't"<<endl;
+				vector<int> v{-1 * unknowns[i]};
+				formula = evaluateQuotient(formula, v);
+				assignments.push_back(-1 * unknowns[i]);
+				unknowns.erase(remove(unknowns.begin(), unknowns.end(), unknowns[i]), unknowns.end());
+			}
+			if (!literalExists && complementExists) {
+				//cout<<"complement exists and literal doesn't"<<endl;
+				vector<int> v{unknowns[i]};
+				formula = evaluateQuotient(formula, v);
+				assignments.push_back(unknowns[i]);
+				unknowns.erase(remove(unknowns.begin(), unknowns.end(), unknowns[i]), unknowns.end());
+			}
+		}
+	//cout << "applyPureLiteral ends" << endl;
+}
+
 bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 	//cout << "inside solve" << endl;
 	bool satisfiable = false;
@@ -208,8 +248,25 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 		//cout<<"unknowns:"<<endl;
 		printVector(unknowns);
 
-		//applyUnitPropogation(formula, assignments, unknowns);
+		applyUnitPropogation(formula, assignments, unknowns);
+		if (checkUnsatisfiable(formula)) {
+			continue;
+		}
+		applyPureLiteralRule(formula, assignments, unknowns);
+		if (formula.size() == 0) {
+			if (!checkSolution(formula, assignments)) {
+				cout << "Fatal error!!!" << endl;
+			}
+			satisfiable = true;
+			cout << "SATISFIABLE" << endl;
+			//print solution
+			for (int i = 0; i < assignments.size(); i++) {
+				cout << assignments[i] << " ";
+			}
+			cout << endl;
+			return satisfiable;
 
+		}
 
 		//cout << "generating ON sets from " << unknowns.size() << " unknowns"<< endl;
 		vector < vector<int> > onSet = generateOnSet(unknowns);
@@ -238,12 +295,12 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 			 }//cout<<endl;*/
 			if (f.size() == 0) {
 				vector<int> newAssignments(assignments);
-				newAssignments.insert(newAssignments.end(),onTerm.begin(),onTerm.end());
-				if(!checkSolution(f,newAssignments)){
-					//cout<<"Fatal error!!!"<<endl;
+				newAssignments.insert(newAssignments.end(), onTerm.begin(), onTerm.end());
+				if (!checkSolution(f, newAssignments)) {
+					cout << "Fatal error!!!" << endl;
 				}
 				satisfiable = true;
-				cout << "SATISFIABLE"<<endl;
+				cout << "SATISFIABLE" << endl;
 				//print solution
 				for (int i = 0; i < newAssignments.size(); i++) {
 					cout << newAssignments[i] << " ";
@@ -258,8 +315,7 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 				printVector(assignments);
 				//cout<<"on Terms"<<endl;
 				printVector(onTerm);
-				newAssignments.insert(newAssignments.end(), onTerm.begin(),
-						onTerm.end());
+				newAssignments.insert(newAssignments.end(), onTerm.begin(), onTerm.end());
 				//cout<<"new assignments"<<endl;
 				printVector(newAssignments);
 				unknowns = findUnassignedVars(onTerm, unknowns);
