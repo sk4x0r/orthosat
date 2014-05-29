@@ -44,9 +44,9 @@ inline int findIndexOf(vector<int> v, int n){
 	return -1;
 }
 
-inline vector<vector<int> > evaluateQuotient(vector<vector<int> > formula, vector<int> assignments) {
+inline void evaluateQuotient(vector<vector<int> > formula, vector<int> assignments, vector<vector<int> > &fIter) {
 	//cout << "inside evaluateQuotient" << endl;
-	vector < vector<int> > fIter(formula);
+	fIter=vector<vector<int> >(formula);
 	int removedClauses = 0;
 	for (int i = 0; i < assignments.size(); i++) {
 		int assignment = assignments[i];
@@ -71,7 +71,6 @@ inline vector<vector<int> > evaluateQuotient(vector<vector<int> > formula, vecto
 		}
 	}
 	//cout << "returning from evaluateQuotient" << endl;
-	return fIter;
 }
 
 inline void evaluateQuotientInPlace(vector<vector<int> > formula, vector<int> assignments) {
@@ -141,10 +140,10 @@ inline int findMin(vector<int> array) {
 	return smallest;
 }
 
-inline vector<vector<int> > generateOnSet(vector<int> unknowns) {
+inline void generateOnSet(vector<int> unknowns, vector<vector<int> > &onSet) {
 	//cout<<"inside generateOnSet"<<endl;
 	//cout<<"size of unknowns="<<unknowns.size()<<endl;
-	vector < vector<int> > onSet = vector<vector<int> >();
+	onSet.clear();
 	int minCount = findMin(unknowns);
 	for (int i = 0; i < unknowns.size(); i++) {
 		int count = unknowns[i];
@@ -161,12 +160,11 @@ inline vector<vector<int> > generateOnSet(vector<int> unknowns) {
 		lastTerm.push_back((-1) * unknowns[j]);
 	}
 	onSet.push_back(lastTerm);
-	return onSet;
 }
 
-inline vector<int> findUnassignedVars(vector<int> term, vector<int> varList) {
+inline void findUnassignedVars(vector<int> term, vector<int> varList,vector<int> &unassignedVars) {
 	//cout<<"inside findUnassignedVars"<<endl;
-	vector<int> unassignedVars;
+	unassignedVars.clear();
 	for (int i = 0; i < varList.size(); i++) {
 		bool found = false;
 		for (int j = 0; j < term.size(); j++) {
@@ -179,7 +177,6 @@ inline vector<int> findUnassignedVars(vector<int> term, vector<int> varList) {
 			unassignedVars.push_back(varList[i]);
 		}
 	}
-	return unassignedVars;
 }
 
 inline bool checkUnsatisfiable(vector<vector<int> > formula) {
@@ -206,7 +203,9 @@ inline void trimFormula(vector<vector<int> > formula) {
 
 inline bool checkSolution(vector<vector<int> > formula, vector<int> assignments) {
 	//cout<<"inside checkSolution"<<endl;
-	if (evaluateQuotient(formula, assignments).size() == 0) {
+	vector<vector<int> >fIter;
+	evaluateQuotient(formula, assignments, fIter);
+	if (fIter.size()==0){
 		return true;
 	}
 	return false;
@@ -293,10 +292,12 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 
 		}
 
-		vector < vector<int> > onSet = generateOnSet(unknowns);
+		vector < vector<int> > onSet;
+		generateOnSet(unknowns, onSet);
 		for (int i = 0; i < onSet.size(); i++) {
 			vector<int> onTerm = onSet[i];
-			vector < vector<int> > f = evaluateQuotient(formula, onTerm);
+			vector < vector<int> > f;
+			evaluateQuotient(formula, onTerm,f);
 			if (f.size() == 0) {
 				vector<int> newAssignments(assignments);
 				newAssignments.insert(newAssignments.end(), onTerm.begin(), onTerm.end());
@@ -316,9 +317,10 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 			} else {
 				vector<int> newAssignments(assignments);
 				newAssignments.insert(newAssignments.end(), onTerm.begin(), onTerm.end());
-				unknowns = findUnassignedVars(onTerm, unknowns);
+				vector<int> newUnknowns;
+				findUnassignedVars(onTerm, unknowns, newUnknowns);
 				trimFormula(f);
-				q_element temp = { f, newAssignments, unknowns };
+				q_element temp = { f, newAssignments, newUnknowns };
 				q.push_back(temp);
 			}
 		}
