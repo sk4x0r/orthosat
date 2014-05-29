@@ -34,6 +34,16 @@ bool isPresentIn(vector<int> v, int n) {
 	return false;
 }
 
+int findIndexOf(vector<int> v, int n){
+	for(int i=0;i<v.size();i++){
+		if(v[i]==n){
+			return i;
+		}
+	}
+	cout<<"Fatal error in findIndexOf: n not found in v"<<endl;
+	return -1;
+}
+
 vector<vector<int> > evaluateQuotient(vector<vector<int> > formula, vector<int> assignments) {
 	//cout << "inside evaluateQuotient" << endl;
 	vector < vector<int> > fIter(formula);
@@ -41,29 +51,21 @@ vector<vector<int> > evaluateQuotient(vector<vector<int> > formula, vector<int> 
 	for (int i = 0; i < assignments.size(); i++) {
 		int assignment = assignments[i];
 		for (int j = fIter.size() - 1; j >= 0; j--) {
-			//cout<<"1"<<endl;
 			for (int k = fIter[j].size() - 1; k >= 0; k--) {
-				//cout<<"2"<<endl;
 				if (assignment + fIter[j][k] == 0) {
-					//cout<<"if"<<endl;
-					//cout << "removing term" << endl;
-					fIter.erase(fIter.begin() + j);
-					//cout << "removed" << endl;
+					//fIter.erase(fIter.begin() + j);
+					fIter[j]=fIter.back();
+					fIter.pop_back();
 					break;
 				} else if (assignment == fIter[j][k]) {
-					//cout<<"else"<<endl;
-					//cout << "removing literal at pos [" << j << "][" << k << "]"<< endl;
-					//cout << "size=" << fIter[j].size() << endl;
-					//cout << "fIter[j][k]=" << fIter[j][k] << endl;
-					//cout << "fIter[j].begin()=" << *(fIter[j].begin()) << endl;
-					//cout << "fIter[j].begin()+k=" << *(fIter[j].begin() + k)<< endl;
-					//cout << "sz=" << fIter[j].size() << endl;
 					if (fIter[j].size() <= 1) {
 						fIter[j].clear();
 					} else {
-						fIter[j].erase(fIter[j].begin() + k);
+						//fIter[j].erase(fIter[j].begin() + k);
+						if(k!=fIter[j].size()-1)
+							fIter[j][k]=fIter[j].back();
+						fIter[j].pop_back();
 					}
-					//cout<<"removed"<<endl;
 				}
 			}
 		}
@@ -72,9 +74,37 @@ vector<vector<int> > evaluateQuotient(vector<vector<int> > formula, vector<int> 
 	return fIter;
 }
 
+void evaluateQuotientInPlace(vector<vector<int> > formula, vector<int> assignments) {
+	//cout << "inside evaluateQuotient" << endl;
+	int removedClauses = 0;
+	for (int i = 0; i < assignments.size(); i++) {
+		int assignment = assignments[i];
+		for (int j = formula.size() - 1; j >= 0; j--) {
+			for (int k = formula[j].size() - 1; k >= 0; k--) {
+				if (assignment + formula[j][k] == 0) {
+					//fIter.erase(fIter.begin() + j);
+					formula[j]=formula.back();
+					formula.pop_back();
+					break;
+				} else if (assignment == formula[j][k]) {
+					if (formula[j].size() <= 1) {
+						formula[j].clear();
+					} else {
+						//fIter[j].erase(fIter[j].begin() + k);
+						if(k!=formula[j].size()-1)
+							formula[j][k]=formula[j].back();
+						formula[j].pop_back();
+					}
+				}
+			}
+		}
+	}
+}
+
 void applyUnitPropogation(vector<vector<int> > formula, vector<int> assignments, vector<int> unknowns) {
 	//cout<<"inside applyUnitProp"<<endl;
 	vector<int> alreadyRemoved;
+	vector<int> propogatedLiterals;
 	for (int i = 0; i < formula.size(); i++) {
 		if (formula[i].size() == 1) {
 			if (isPresentIn(alreadyRemoved, abs(formula[i][0]))) {
@@ -83,14 +113,19 @@ void applyUnitPropogation(vector<vector<int> > formula, vector<int> assignments,
 			alreadyRemoved.push_back(abs(formula[i][0]));
 			assignments.push_back(formula[i][0]);
 			//cout<<"erasing from unknowns"<<endl;
-			unknowns.erase(remove(unknowns.begin(), unknowns.end(), abs(formula[i][0])), unknowns.end());
+			//unknowns.erase(remove(unknowns.begin(), unknowns.end(), abs(formula[i][0])), unknowns.end());
+			int idx=findIndexOf(unknowns, abs(formula[i][0]));
+			unknowns[idx]=unknowns.back();
+			unknowns.pop_back();
 			//cout<<"erased"<<endl;
-			vector<int> v{-1 * (formula[i][0])};
+			//vector<int> v{-1 * (formula[i][0])};
+			propogatedLiterals.push_back(-1*formula[i][0]);
 			//cout<<"evaluating Quitient"<<endl;
-			formula = evaluateQuotient(formula, v);
+			//formula = evaluateQuotient(formula, v);
 			//cout<<"evaluated"<<endl;
 		}
 	}
+	evaluateQuotientInPlace(formula, propogatedLiterals);
 	//cout<<"returning from applyUnitProp"<<endl;
 }
 
@@ -185,6 +220,7 @@ struct q_element {
 
 void applyPureLiteralRule(vector<vector<int> > formula, vector<int> assignments, vector<int> unknowns) {
 	//cout << "applyPureLiteral begins" << endl;
+	vector<int> pureLiterals;
 	for (int i = 0; i < unknowns.size(); i++) {
 		//cout << "i=" << i << endl;
 		bool literalExists = false;
@@ -208,20 +244,16 @@ void applyPureLiteralRule(vector<vector<int> > formula, vector<int> assignments,
 			}
 		}
 			if (literalExists && !complementExists) {
-				//cout<<"literal exists and complement doesn't"<<endl;
-				vector<int> v{-1 * unknowns[i]};
-				formula = evaluateQuotient(formula, v);
-				assignments.push_back(-1 * unknowns[i]);
-				unknowns.erase(remove(unknowns.begin(), unknowns.end(), unknowns[i]), unknowns.end());
-			}
-			if (!literalExists && complementExists) {
-				//cout<<"complement exists and literal doesn't"<<endl;
-				vector<int> v{unknowns[i]};
-				formula = evaluateQuotient(formula, v);
-				assignments.push_back(unknowns[i]);
-				unknowns.erase(remove(unknowns.begin(), unknowns.end(), unknowns[i]), unknowns.end());
+				pureLiterals.push_back(unknowns[i]);
+			}else if (!literalExists && complementExists) {
+				pureLiterals.push_back(-1*unknowns[i]);
 			}
 		}
+	for(int i=0;i<pureLiterals.size();i++){
+		assignments.push_back(-1*pureLiterals[i]);
+		unknowns.erase(remove(unknowns.begin(), unknowns.end(), abs(pureLiterals[i])), unknowns.end());
+	}
+	evaluateQuotientInPlace(formula, pureLiterals);
 	//cout << "applyPureLiteral ends" << endl;
 }
 
@@ -241,12 +273,14 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 		assignments = t.assignments;
 		unknowns = t.unknowns;
 
+/*
 		//cout<<"formula:"<<endl;
 		print2dVector(formula);
 		//cout<<"assignments:"<<endl;
 		printVector(assignments);
 		//cout<<"unknowns:"<<endl;
 		printVector(unknowns);
+*/
 
 		applyUnitPropogation(formula, assignments, unknowns);
 		if (checkUnsatisfiable(formula)) {

@@ -47,18 +47,19 @@ int main(int argc, char** argv){
 	for(int i=1;i<=vars;i++){
 		unknowns.push_back(i);
 	}
+	/*
 	cout<<"unknowns="<<endl;
 	for(int i=0;i<unknowns.size();i++){
 		cout<<unknowns[i]<<" ";
-	}cout<<endl;
-	timestamp_t t0 = get_timestamp();
+	}cout<<endl;*/
+	timestamp_t t0 = get_timestamp(),t1;
 	if(solve(formula,unknowns)){
+		t1 = get_timestamp();
 		cout<<"SATISFIABLE"<<endl;
 	}else{
-
+		t1 = get_timestamp();
 		cout<<"UNSATISFIABLE"<<endl;
 	}
-	timestamp_t t1 = get_timestamp();
 	double secs = (t1 - t0) / 1000000.0L;
 	cout<<"Time:"<<secs<<" secs"<<endl;
 }
