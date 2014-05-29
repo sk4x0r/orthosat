@@ -9,21 +9,21 @@
 #ifndef SOLVER_H_
 #define SOLVER_H_
 
-void print2dVector(vector<vector<int> > v) {
+inline void print2dVector(vector<vector<int> > v) {
 	for (int i = 0; i < v.size(); i++) {
 		for (int j = 0; j < v[i].size(); j++) {
-			//cout<<v[i][j]<<" ";
-		} //cout<<endl;
+			cout<<v[i][j]<<" ";
+		} cout<<endl;
 	}
 }
 
-void printVector(vector<int> v) {
+inline void printVector(vector<int> v) {
 	for (int i = 0; i < v.size(); i++) {
-		//cout<<v[i];
-	} //cout<<endl;
+		cout<<v[i];
+	} cout<<endl;
 }
 
-bool isPresentIn(vector<int> v, int n) {
+inline bool isPresentIn(vector<int> v, int n) {
 	//cout<<"inside isPresentIn"<<endl;
 	for (int i = 0; i < v.size(); i++) {
 		if (v[i] == n) {
@@ -34,7 +34,7 @@ bool isPresentIn(vector<int> v, int n) {
 	return false;
 }
 
-int findIndexOf(vector<int> v, int n){
+inline int findIndexOf(vector<int> v, int n){
 	for(int i=0;i<v.size();i++){
 		if(v[i]==n){
 			return i;
@@ -44,7 +44,7 @@ int findIndexOf(vector<int> v, int n){
 	return -1;
 }
 
-vector<vector<int> > evaluateQuotient(vector<vector<int> > formula, vector<int> assignments) {
+inline vector<vector<int> > evaluateQuotient(vector<vector<int> > formula, vector<int> assignments) {
 	//cout << "inside evaluateQuotient" << endl;
 	vector < vector<int> > fIter(formula);
 	int removedClauses = 0;
@@ -74,7 +74,7 @@ vector<vector<int> > evaluateQuotient(vector<vector<int> > formula, vector<int> 
 	return fIter;
 }
 
-void evaluateQuotientInPlace(vector<vector<int> > formula, vector<int> assignments) {
+inline void evaluateQuotientInPlace(vector<vector<int> > formula, vector<int> assignments) {
 	//cout << "inside evaluateQuotient" << endl;
 	int removedClauses = 0;
 	for (int i = 0; i < assignments.size(); i++) {
@@ -101,7 +101,7 @@ void evaluateQuotientInPlace(vector<vector<int> > formula, vector<int> assignmen
 	}
 }
 
-void applyUnitPropogation(vector<vector<int> > formula, vector<int> assignments, vector<int> unknowns) {
+inline void applyUnitPropogation(vector<vector<int> > formula, vector<int> assignments, vector<int> unknowns) {
 	//cout<<"inside applyUnitProp"<<endl;
 	vector<int> alreadyRemoved;
 	vector<int> propogatedLiterals;
@@ -129,7 +129,7 @@ void applyUnitPropogation(vector<vector<int> > formula, vector<int> assignments,
 	//cout<<"returning from applyUnitProp"<<endl;
 }
 
-int findMin(vector<int> array) {
+inline int findMin(vector<int> array) {
 	//cout<<"inside findmin"<<endl;
 	//cout<<"size of array="<<array.size()<<endl;
 	int smallest = array[0];
@@ -141,7 +141,7 @@ int findMin(vector<int> array) {
 	return smallest;
 }
 
-vector<vector<int> > generateOnSet(vector<int> unknowns) {
+inline vector<vector<int> > generateOnSet(vector<int> unknowns) {
 	//cout<<"inside generateOnSet"<<endl;
 	//cout<<"size of unknowns="<<unknowns.size()<<endl;
 	vector < vector<int> > onSet = vector<vector<int> >();
@@ -164,7 +164,7 @@ vector<vector<int> > generateOnSet(vector<int> unknowns) {
 	return onSet;
 }
 
-vector<int> findUnassignedVars(vector<int> term, vector<int> varList) {
+inline vector<int> findUnassignedVars(vector<int> term, vector<int> varList) {
 	//cout<<"inside findUnassignedVars"<<endl;
 	vector<int> unassignedVars;
 	for (int i = 0; i < varList.size(); i++) {
@@ -182,7 +182,7 @@ vector<int> findUnassignedVars(vector<int> term, vector<int> varList) {
 	return unassignedVars;
 }
 
-bool checkUnsatisfiable(vector<vector<int> > formula) {
+inline bool checkUnsatisfiable(vector<vector<int> > formula) {
 	//cout<<"inside checkUnsatisfiable"<<endl;
 	for (int i = 0; i < formula.size(); i++) {
 		if (formula[i].size() == 0) {
@@ -192,19 +192,19 @@ bool checkUnsatisfiable(vector<vector<int> > formula) {
 	return false;
 }
 
-vector<vector<int> > trimFormula(vector<vector<int> > formula) {
+//TODO: improve this
+inline void trimFormula(vector<vector<int> > formula) {
 	//cout<<"inside trimFormula"<<endl;
-	vector < vector<int> > trimmedFormula;
 	for (int i = 0; i < formula.size(); i++) {
 		if (formula[i].size() != 0) {
-			trimmedFormula.push_back(formula[i]);
+			formula[i]=formula.back();
+			formula.pop_back();
 		}
 	}
 	//cout<<"returning"<<endl;
-	return trimmedFormula;
 }
 
-bool checkSolution(vector<vector<int> > formula, vector<int> assignments) {
+inline bool checkSolution(vector<vector<int> > formula, vector<int> assignments) {
 	//cout<<"inside checkSolution"<<endl;
 	if (evaluateQuotient(formula, assignments).size() == 0) {
 		return true;
@@ -212,13 +212,7 @@ bool checkSolution(vector<vector<int> > formula, vector<int> assignments) {
 	return false;
 }
 
-struct q_element {
-	vector<vector<int> > formula;
-	vector<int> assignments;
-	vector<int> unknowns;
-};
-
-void applyPureLiteralRule(vector<vector<int> > formula, vector<int> assignments, vector<int> unknowns) {
+inline void applyPureLiteralRule(vector<vector<int> > formula, vector<int> assignments, vector<int> unknowns) {
 	//cout << "applyPureLiteral begins" << endl;
 	vector<int> pureLiterals;
 	for (int i = 0; i < unknowns.size(); i++) {
@@ -257,11 +251,17 @@ void applyPureLiteralRule(vector<vector<int> > formula, vector<int> assignments,
 	//cout << "applyPureLiteral ends" << endl;
 }
 
+struct q_element {
+	vector<vector<int> > formula;
+	vector<int> assignments;
+	vector<int> unknowns;
+};
+
 bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 	//cout << "inside solve" << endl;
 	bool satisfiable = false;
 	vector<int> assignments;
-	q_element t = { formula, assignments, unknowns, };
+	q_element t = {formula, assignments, unknowns, };
 	deque<q_element> q;
 	q.push_back(t);
 
@@ -272,15 +272,6 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 		formula = t.formula;
 		assignments = t.assignments;
 		unknowns = t.unknowns;
-
-/*
-		//cout<<"formula:"<<endl;
-		print2dVector(formula);
-		//cout<<"assignments:"<<endl;
-		printVector(assignments);
-		//cout<<"unknowns:"<<endl;
-		printVector(unknowns);
-*/
 
 		applyUnitPropogation(formula, assignments, unknowns);
 		if (checkUnsatisfiable(formula)) {
@@ -302,31 +293,10 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 
 		}
 
-		//cout << "generating ON sets from " << unknowns.size() << " unknowns"<< endl;
 		vector < vector<int> > onSet = generateOnSet(unknowns);
-		//cout << "generated " << onSet.size() << " on sets" << endl;
-		//cout << "onsets are" << endl;
-		for (int i = 0; i < onSet.size(); i++) {
-			for (int j = 0; j < onSet[i].size(); j++) {
-				//cout << onSet[i][j] << " ";
-			}
-			//cout << endl;
-		}
-		//cout << "Evaluating quotient for each ON term" << endl;
 		for (int i = 0; i < onSet.size(); i++) {
 			vector<int> onTerm = onSet[i];
-			//cout << "onTerm=";
-			for (int i = 0; i < onTerm.size(); i++) {
-				//cout << onTerm[i] << " ";
-			}
-			//cout << endl;
 			vector < vector<int> > f = evaluateQuotient(formula, onTerm);
-			/*//cout<<"Quotient=";
-			 for(int i=0;i<f.size();i++){
-			 for(int j=0;j<f[i].size();j++){
-			 //cout<<f[i][j];
-			 }//cout<<" + ";
-			 }//cout<<endl;*/
 			if (f.size() == 0) {
 				vector<int> newAssignments(assignments);
 				newAssignments.insert(newAssignments.end(), onTerm.begin(), onTerm.end());
@@ -345,17 +315,10 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 				continue;
 			} else {
 				vector<int> newAssignments(assignments);
-				//cout<<"prev assignments"<<endl;
-				printVector(assignments);
-				//cout<<"on Terms"<<endl;
-				printVector(onTerm);
 				newAssignments.insert(newAssignments.end(), onTerm.begin(), onTerm.end());
-				//cout<<"new assignments"<<endl;
-				printVector(newAssignments);
 				unknowns = findUnassignedVars(onTerm, unknowns);
-				f = trimFormula(f);
+				trimFormula(f);
 				q_element temp = { f, newAssignments, unknowns };
-				//cout << "pushing to queue" << endl;
 				q.push_back(temp);
 			}
 		}
