@@ -15,6 +15,8 @@
 #include <fstream>
 #include<time.h>
 #include <sys/time.h>
+#include <utility>
+#include<algorithm>
 using namespace std;
 
 
@@ -154,6 +156,42 @@ char* readFile(char* fileName) {
 	}
 	//cout<<"contents of file="<<data<<endl;
 	return data;
+}
+
+struct sort_pred {
+    bool operator()(const std::pair<int,int> &left, const std::pair<int,int> &right) {
+        return left.second < right.second;
+    }
+};
+
+
+inline void printVec(vector<int> v) {
+	for (int i = 0; i < v.size(); i++) {
+		cout<<v[i]<<" ";
+	} cout<<endl;
+}
+
+inline void printPairs(vector<pair<int, int> > v) {
+	for (int i = 0; i < v.size(); i++) {
+		cout<<v[i].first<<" "<<v[i].second<<endl;
+	}
+}
+
+void orderUnknowns(vector<vector<int> > formula, int unknownCount, vector<int> &unknowns){
+	vector<int> count(unknownCount,0);
+	for (int i = 0; i < formula.size(); i++) {
+		for (int j = 0; j < formula[i].size(); j++) {
+			++count[abs(formula[i][j])-1];
+		}
+	}
+	vector<pair<int, int> > pairs;
+	for(int i=0;i<unknownCount;i++){
+		pairs.push_back(pair<int, int>(i+1, count[i]));
+	}
+	sort(pairs.begin(), pairs.end(), sort_pred());
+	for(int i=pairs.size()-1;i>=0;i--){
+		unknowns.push_back(pairs[i].first);
+	}
 }
 
 #endif /* UTIL_H_ */

@@ -147,7 +147,7 @@ inline void generateOnSet(vector<int> unknowns, vector<vector<int> > &onSet) {
 	int minCount = findMin(unknowns);
 	for (int i = 0; i < unknowns.size(); i++) {
 		int count = unknowns[i];
-		vector<int> term = vector<int>();
+		vector<int> term;
 		for (int j = minCount; j < count; j++) {
 			term.push_back((-1) * j);
 		}
@@ -160,6 +160,35 @@ inline void generateOnSet(vector<int> unknowns, vector<vector<int> > &onSet) {
 		lastTerm.push_back((-1) * unknowns[j]);
 	}
 	onSet.push_back(lastTerm);
+}
+
+inline void generateOnSet2(vector<int> unknowns, vector<vector<int> > &onSet){
+	onSet.clear();
+	if(unknowns.size()<2){
+		vector<int> term;
+		term.push_back(unknowns[0]);
+		onSet.push_back(term);
+		vector<int> term2;
+		term2.push_back(-1*unknowns[0]);
+		onSet.push_back(term2);
+	}else{
+		vector<int> term;
+		term.push_back(unknowns[0]);
+		term.push_back(unknowns[1]);
+		onSet.push_back(term);
+		vector<int> term2;
+		term2.push_back(-1*unknowns[0]);
+		term2.push_back(unknowns[1]);
+		onSet.push_back(term2);
+		vector<int> term3;
+		term3.push_back(unknowns[0]);
+		term3.push_back(-1*unknowns[1]);
+		onSet.push_back(term3);
+		vector<int> term4;
+		term4.push_back(-1*unknowns[0]);
+		term4.push_back(-1*unknowns[1]);
+		onSet.push_back(term4);
+	}
 }
 
 inline void findUnassignedVars(vector<int> term, vector<int> varList,vector<int> &unassignedVars) {
@@ -189,7 +218,6 @@ inline bool checkUnsatisfiable(vector<vector<int> > formula) {
 	return false;
 }
 
-//TODO: improve this
 inline void trimFormula(vector<vector<int> > formula) {
 	//cout<<"inside trimFormula"<<endl;
 	for (int i = 0; i < formula.size(); i++) {
@@ -293,7 +321,7 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 		}
 
 		vector < vector<int> > onSet;
-		generateOnSet(unknowns, onSet);
+		generateOnSet2(unknowns, onSet);
 		for (int i = 0; i < onSet.size(); i++) {
 			vector<int> onTerm = onSet[i];
 			vector < vector<int> > f;

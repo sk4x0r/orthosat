@@ -44,14 +44,7 @@ int main(int argc, char** argv){
 	parseDimacs(in,formula,&vars, &clauses);
 	cout<<"vars="<<vars<<endl<<"clauses="<<clauses<<endl;
 	vector<int> unknowns;
-	for(int i=1;i<=vars;i++){
-		unknowns.push_back(i);
-	}
-	/*
-	cout<<"unknowns="<<endl;
-	for(int i=0;i<unknowns.size();i++){
-		cout<<unknowns[i]<<" ";
-	}cout<<endl;*/
+	orderUnknowns(formula, vars, unknowns);
 	timestamp_t t0 = get_timestamp(),t1;
 	if(solve(formula,unknowns)){
 		t1 = get_timestamp();
