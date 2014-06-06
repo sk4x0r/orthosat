@@ -177,7 +177,7 @@ inline void printPairs(vector<pair<int, int> > v) {
 	}
 }
 
-void orderUnknowns(vector<vector<int> > formula, int unknownCount, vector<int> &unknowns){
+void orderUnknowns(vector<vector<int> > &formula, int unknownCount, vector<int> &unknowns){
 	vector<int> count(unknownCount,0);
 	for (int i = 0; i < formula.size(); i++) {
 		for (int j = 0; j < formula[i].size(); j++) {

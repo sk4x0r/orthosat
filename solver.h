@@ -318,11 +318,11 @@ bool solve(vector<vector<int> > formulaa, vector<int> unknownsa) {
 	//cout << "going inside while" << endl;
 	while (!q.empty()) {
 		t = q.front();
-		q.pop_front();
 
 		//TODO: unit propogation and pure literal elimination
 		applyUnitPropogation(t.formula, t.assignments, t.unknowns);
 		if (checkUnsatisfiable(t.formula)){
+			q.pop_front();
 			continue;
 		}
 		if (t.formula.size() == 0) {
@@ -375,6 +375,7 @@ bool solve(vector<vector<int> > formulaa, vector<int> unknownsa) {
 				cout << endl;
 				return satisfiable;
 			} else if (checkUnsatisfiable (f)) {
+				q.pop_front();
 				continue;
 			} else {
 				vector<int> newAssignments(t.assignments);
@@ -385,6 +386,7 @@ bool solve(vector<vector<int> > formulaa, vector<int> unknownsa) {
 				q.push_back({ f, newAssignments, newUnknowns });
 			}
 		}
+	q.pop_front();
 	}
 	return false;
 }
