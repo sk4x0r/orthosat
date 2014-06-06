@@ -307,11 +307,11 @@ struct q_element {
 	vector<int> unknowns;
 };
 
-bool solve(vector<vector<int> > formula, vector<int> unknowns) {
+bool solve(vector<vector<int> > formulaa, vector<int> unknownsa) {
 	//cout << "inside solve" << endl;
 	bool satisfiable = false;
-	vector<int> assignments;
-	q_element t = {formula, assignments, unknowns, };
+	vector<int> assignmentsa;
+	q_element t = {formulaa, assignmentsa, unknownsa, };
 	deque<q_element> q;
 	q.push_back(t);
 
@@ -319,52 +319,49 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 	while (!q.empty()) {
 		t = q.front();
 		q.pop_front();
-			formula = t.formula;
-		assignments = t.assignments;
-		unknowns = t.unknowns;
 
 		//TODO: unit propogation and pure literal elimination
-		applyUnitPropogation(formula, assignments, unknowns);
-		if (checkUnsatisfiable(formula)){
+		applyUnitPropogation(t.formula, t.assignments, t.unknowns);
+		if (checkUnsatisfiable(t.formula)){
 			continue;
 		}
-		if (formula.size() == 0) {
-			if (!checkSolution(formula, assignments)) {
+		if (t.formula.size() == 0) {
+			if (!checkSolution(t.formula, t.assignments)) {
 				cout << "Fatal error!!!" << endl;
 			}
 			satisfiable = true;
 			cout << "SATISFIABLE" << endl;
 			//print solution
-			for (int i = 0; i < assignments.size(); i++) {
-				cout << assignments[i] << " ";
+			for (int i = 0; i < t.assignments.size(); i++) {
+				cout << t.assignments[i] << " ";
 			}
 			cout << endl;
 			return satisfiable;
 
 		}
-		applyPureLiteralRule(formula, assignments, unknowns);
-		if (formula.size() == 0) {
-			if (!checkSolution(formula, assignments)) {
+		applyPureLiteralRule(t.formula, t.assignments, t.unknowns);
+		if (t.formula.size() == 0) {
+			if (!checkSolution(t.formula, t.assignments)) {
 				cout << "Fatal error!!!" << endl;
 			}
 			satisfiable = true;
 			cout << "SATISFIABLE" << endl;
 			//print solution
-			for (int i = 0; i < assignments.size(); i++) {
-				cout << assignments[i] << " ";
+			for (int i = 0; i < t.assignments.size(); i++) {
+				cout << t.assignments[i] << " ";
 			}
 			cout << endl;
 			return satisfiable;
 
 		}
 		vector < vector<int> > onSet;
-		generateOnSet2(unknowns, onSet);
+		generateOnSet2(t.unknowns, onSet);
 		for (int i = 0; i < onSet.size(); i++) {
 			vector<int> onTerm = onSet[i];
 			vector < vector<int> > f;
-			evaluateQuotient(formula, onTerm,f);
+			evaluateQuotient(t.formula, onTerm,f);
 			if (f.size() == 0) {
-				vector<int> newAssignments(assignments);
+				vector<int> newAssignments(t.assignments);
 				newAssignments.insert(newAssignments.end(), onTerm.begin(), onTerm.end());
 				if (!checkSolution(f, newAssignments)) {
 					cout << "Fatal error!!!" << endl;
@@ -380,13 +377,12 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns) {
 			} else if (checkUnsatisfiable (f)) {
 				continue;
 			} else {
-				vector<int> newAssignments(assignments);
+				vector<int> newAssignments(t.assignments);
 				newAssignments.insert(newAssignments.end(), onTerm.begin(), onTerm.end());
 				vector<int> newUnknowns;
-				findUnassignedVars(onTerm, unknowns, newUnknowns);
+				findUnassignedVars(onTerm, t.unknowns, newUnknowns);
 				//trimFormula(f);
-				q_element temp = { f, newAssignments, newUnknowns };
-				q.push_back(temp);
+				q.push_back({ f, newAssignments, newUnknowns });
 			}
 		}
 	}
