@@ -1,2 +1,2 @@
 all:
-	g++ main.cpp util.h -o orthosat -std=c++11 -O3
+	mpic++ main.cpp util.h -o orthosat -std=c++11 -O3
