@@ -257,10 +257,6 @@ inline bool processQ(deque<q_element> &q, vector<int> &solution) {
 				//cout << "Fatal error!!!" << endl;
 			//}
 			solution=newAssignments;
-			cout<<"Solution:"<<endl;
-			printVector(solution);
-			cout<<"3"<<endl;
-			printVector(solution);
 			return true;
 		} else if (checkUnsatisfiable (f)) {
 			continue;
@@ -298,6 +294,7 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns, int world_size, v
 	int sat;
 	MPI_Status status;
 	int moreStructs;
+	int idleWorkers=0;
 	while(true){
 		MPI_Recv(&sat, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 		if(sat==1){
@@ -318,7 +315,9 @@ bool solve(vector<vector<int> > formula, vector<int> unknowns, int world_size, v
 				sendStruct(q.front(),status.MPI_SOURCE);
 				q.pop_front();
 			}else{
-				return false;
+				++idleWorkers;
+				if(idleWorkers==world_size-1)
+					return false;
 			}
 		}
 	}

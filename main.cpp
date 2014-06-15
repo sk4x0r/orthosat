@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
 		vector<vector<int> > formula;
 		int vars, clauses;
 		parseDimacs(in, formula, &vars, &clauses);
-		cout << "vars=" << vars << endl << "clauses=" << clauses << endl;
+		cout << "Vars=" << vars << endl << "Clauses=" << clauses << endl;
 		vector<int> unknowns;
 		orderUnknowns(formula, vars, unknowns);
 		timestamp_t t0 = get_timestamp(), t1;
