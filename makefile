@@ -1,2 +1,5 @@
 all:
-	mpic++ main.cpp util.h -o orthosat -std=c++11 -O3
+	mpic++ main.cpp -o orthosat -std=c++11 -O3
+
+clean:
+	rm -rf *o orthosat *~

@@ -16,7 +16,7 @@ struct q_element {
 	vector<int> unknowns;
 };
 
-void printQElement(struct q_element q){
+void printQElement(struct q_element &q){
 	cout<<"Formula="<<endl;
 	for(int i=0;i<q.formula.size();i++){
 		for(int j=0;j<q.formula[i].size();j++){

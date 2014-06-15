@@ -7,11 +7,12 @@
 #include <deque>
 #include<algorithm>
 #include<math.h>
+#include<mpi.h>
 #include "common.h"
+#include "mpi_util.h"
+using namespace std;
 #ifndef SOLVER_H_
 #define SOLVER_H_
-
-
 
 //TODO: write similar function to find element in sorted list
 inline bool isPresentIn(vector<int> &v, int n) {
@@ -222,35 +223,25 @@ inline void applyPureLiteralRule(vector<vector<int> > &formula, vector<int> &ass
 	evaluateQuotientInPlace(formula, pureLiterals);
 }
 
-inline bool processQ(deque<q_element> &q) {
+inline bool processQ(deque<q_element> &q, vector<int> &solution) {
 	applyUnitPropogation(q.front().formula, q.front().assignments, q.front().unknowns);
 	if (checkUnsatisfiable(q.front().formula)) {
 		q.pop_front();
 		return false;
 	}
 	if (q.front().formula.size() == 0) {
-		if (!checkSolution(q.front().formula, q.front().assignments)) {
-			cout << "Fatal error!!!" << endl;
-		}
-		cout << "SATISFIABLE" << endl;
-		//print solution
-		for (int i = 0; i < q.front().assignments.size(); i++) {
-			cout << q.front().assignments[i] << " ";
-		}
-		cout << endl;
+		//if (!checkSolution(q.front().formula, q.front().assignments)) {
+			//cout << "Fatal error!!!" << endl;
+		//}
+		solution=q.front().assignments;
 		return true;
 	}
 	applyPureLiteralRule(q.front().formula, q.front().assignments, q.front().unknowns);
 	if (q.front().formula.size() == 0) {
-		if (!checkSolution(q.front().formula, q.front().assignments)) {
-			cout << "Fatal error!!!" << endl;
-		}
-		cout << "SATISFIABLE" << endl;
-		//print solution
-		for (int i = 0; i < q.front().assignments.size(); i++) {
-			cout << q.front().assignments[i] << " ";
-		}
-		cout << endl;
+		//if (!checkSolution(q.front().formula, q.front().assignments)) {
+			//cout << "Fatal error!!!" << endl;
+		//}
+		solution=q.front().assignments;
 		return true;
 	}
 	vector < vector<int> > onSet;
@@ -262,15 +253,14 @@ inline bool processQ(deque<q_element> &q) {
 		if (f.size() == 0) {
 			vector<int> newAssignments(q.front().assignments);
 			newAssignments.insert(newAssignments.end(), onTerm.begin(), onTerm.end());
-			if (!checkSolution(f, newAssignments)) {
-				cout << "Fatal error!!!" << endl;
-			}
-			cout << "SATISFIABLE" << endl;
-			//print solution
-			for (int i = 0; i < newAssignments.size(); i++) {
-				cout << newAssignments[i] << " ";
-			}
-			cout << endl;
+			//if (!checkSolution(f, newAssignments)) {
+				//cout << "Fatal error!!!" << endl;
+			//}
+			solution=newAssignments;
+			cout<<"Solution:"<<endl;
+			printVector(solution);
+			cout<<"3"<<endl;
+			printVector(solution);
 			return true;
 		} else if (checkUnsatisfiable (f)) {
 			continue;
@@ -279,24 +269,82 @@ inline bool processQ(deque<q_element> &q) {
 			newAssignments.insert(newAssignments.end(), onTerm.begin(), onTerm.end());
 			vector<int> newUnknowns;
 			findUnassignedVars(onTerm, q.front().unknowns, newUnknowns);
-			q.push_back( { f, newAssignments, newUnknowns });
+			q_element temp={ f, newAssignments, newUnknowns };
+			q.push_back(temp);
 		}
 	}
 	q.pop_front();
 	return false;
 }
 
-bool solve(vector<vector<int> > formula, vector<int> unknowns) {
+void broadcastStructs(deque<q_element> &q, int world_size){
+	for(int i=1;i<world_size;i++){
+		sendStruct(q.front(),i);
+		q.pop_front();
+	}
+}
+
+bool solve(vector<vector<int> > formula, vector<int> unknowns, int world_size, vector<int> &solution) {
 	bool satisfiable = false;
 	vector<int> assignments;
 	q_element t = {formula, assignments, unknowns, };
 	deque<q_element> q;
 	q.push_back(t);
-	while (!q.empty()) {
-		if(processQ(q)){
+
+	if(processQ(q, solution)){
+		return true;
+	}
+	broadcastStructs(q,world_size);
+	int sat;
+	MPI_Status status;
+	int moreStructs;
+	while(true){
+		MPI_Recv(&sat, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+		if(sat==1){
+			int msg_size;
+			MPI_Status newStatus;
+			// Probe for an incoming message from process zero
+			MPI_Probe(status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &newStatus);
+			// When probe returns, the status object has the size and other
+			// attributes of the incoming message. Get the size of the message
+			MPI_Get_count(&newStatus, MPI_INT, &msg_size);
+			// Allocate a buffer just big enough to hold the incoming numbers
+			solution.resize(msg_size);
+			// Now receive the message with the allocated buffer
+			MPI_Recv(&solution[0], msg_size, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			return true;
+		}else{
+			if(!q.empty()){
+				sendStruct(q.front(),status.MPI_SOURCE);
+				q.pop_front();
+			}else{
+				return false;
+			}
 		}
 	}
 	return false;
+}
+
+inline void worker(int world_rank){
+	deque<q_element> q;
+	q_element t;
+	vector<int> solution;
+	int sat;
+	MPI_Status status;
+	receiveStruct(0, t);
+	q.push_back(t);
+	while(true){
+		if(q.empty()){
+			sat=0;
+			MPI_Send(&sat, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+			receiveStruct(0,t);
+			q.push_back(t);
+		}else if(processQ(q, solution)){
+			sat=1;
+			MPI_Send(&sat, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+			MPI_Send(&solution[0], solution.size(), MPI_INT, 0, 0, MPI_COMM_WORLD);
+			return;
+		}
+	}
 }
 #endif /* SOLVER_H_ */
