@@ -18,4 +18,4 @@ Implementation depends upon OpenMPI for executing the program on multiple cores 
 
 # License
 
-The package is available under GNU General Public License. See the _LICENSE_ file.
+The package is available under Apache License. See the _LICENSE_ file for details.
